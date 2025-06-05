@@ -1,6 +1,3 @@
-# Complete Working Multi-LLM Java RAG Analyzer Backend
-# Fixed version with all required classes
-
 from fastapi import FastAPI, File, UploadFile, HTTPException, WebSocket, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
