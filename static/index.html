@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java RAG Analyzer - Professional Edition</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="static/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-coffee"></i> Java RAG Analyzer</h1>
+            <p>Professional Edition - Multi-LLM Powered Code Analysis</p>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator" id="connectionStatus"></div>
+                <span id="connectionText">Not Connected</span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-brain"></i>
+                <span id="aiModelStatus">No Model Selected</span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-database"></i>
+                <span id="codebaseStatus">No Codebase Loaded</span>
+            </div>
+        </div>
+
+        <!-- Main Panel -->
+        <div class="main-panel">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('setup', this)">
+                    <i class="fas fa-cog"></i>Setup
+                </button>
+                <button class="tab-btn" onclick="switchTab('upload', this)">
+                    <i class="fas fa-upload"></i>Upload
+                </button>
+                <button class="tab-btn" onclick="switchTab('analyze', this)">
+                    <i class="fas fa-search"></i>Analyze
+                </button>
+                <button class="tab-btn" onclick="switchTab('results', this)">
+                    <i class="fas fa-chart-line"></i>Results
+                </button>
+                <button class="tab-btn" onclick="switchTab('settings', this)">
+                    <i class="fas fa-sliders-h"></i>Settings
+                </button>
+            </div>
+
+            <!-- Setup Tab -->
+            <div class="tab-content active" id="setup-tab">
+                <h2><i class="fas fa-rocket"></i> AI Model Configuration</h2>
+                
+                <!-- Model Selection -->
+                <div class="form-group">
+                    <label class="form-label">Choose Your AI Model</label>
+                    <div class="model-grid">
+                        <div class="model-card" onclick="selectModel('openai')" id="model-openai">
+                            <div class="model-icon" style="color: #00a67e;">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="model-name">OpenAI GPT</div>
+                            <div class="model-desc">GPT-4, GPT-3.5 Turbo</div>
+                        </div>
+                        
+                        <div class="model-card" onclick="selectModel('anthropic')" id="model-anthropic">
+                            <div class="model-icon" style="color: #d97706;">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="model-name">Anthropic Claude</div>
+                            <div class="model-desc">Claude 3.5 Sonnet, Haiku</div>
+                        </div>
+                        
+                        <div class="model-card" onclick="selectModel('google')" id="model-google">
+                            <div class="model-icon" style="color: #4285f4;">
+                                <i class="fab fa-google"></i>
+                            </div>
+                            <div class="model-name">Google Gemini</div>
+                            <div class="model-desc">Gemini 1.5 Pro, Flash</div>
+                        </div>
+                        
+                        <div class="model-card" onclick="selectModel('local')" id="model-local">
+                            <div class="model-icon" style="color: #6c757d;">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <div class="model-name">Local Model</div>
+                            <div class="model-desc">Ollama, LM Studio</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Configuration -->
+                <div id="model-config" style="display: none;">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">API Key</label>
+                            <input type="password" id="apiKey" class="form-input" placeholder="Enter your API key">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Model Version</label>
+                            <select id="modelVersion" class="form-select">
+                                <!-- Options populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="endpoint-config" style="display: none;">
+                        <label class="form-label">API Endpoint</label>
+                        <input type="url" id="apiEndpoint" class="form-input" placeholder="http://localhost:11434/api/generate">
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="saveConfiguration()">
+                        <i class="fas fa-save"></i>Save Configuration
+                    </button>
+                </div>
+            </div>
+
+            <!-- Upload Tab -->
+            <div class="tab-content" id="upload-tab">
+                <h2><i class="fas fa-cloud-upload-alt"></i> Codebase Upload</h2>
+                
+                <div class="upload-area" id="uploadArea" onclick="triggerFileSelect()">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Drop your Java codebase ZIP file here</h3>
+                    <p>or click to browse files</p>
+                    <input type="file" id="fileInput" accept=".zip" style="display: none;">
+                </div>
+                
+                <div id="fileInfo" style="display: none;" class="card">
+                    <h4><i class="fas fa-file-archive"></i> Selected File</h4>
+                    <p><strong>Name:</strong> <span id="fileName"></span></p>
+                    <p><strong>Size:</strong> <span id="fileSize"></span></p>
+                    <button class="btn btn-success" onclick="processCodebase()" id="processBtn">
+                        <i class="fas fa-play"></i>Process Codebase
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearFile()">
+                        <i class="fas fa-times"></i>Remove File
+                    </button>
+                </div>
+                
+                <div id="progressContainer" style="display: none;" class="progress-container">
+                    <h4>Processing Progress</h4>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Ready...</div>
+                </div>
+
+                <div id="statsContainer" style="display: none;">
+                    <h3><i class="fas fa-chart-bar"></i> Codebase Statistics</h3>
+                    <div class="stats-grid" id="statsGrid">
+                        <!-- Stats populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analyze Tab -->
+            <div class="tab-content" id="analyze-tab">
+                <h2><i class="fas fa-microscope"></i> Code Analysis</h2>
+                
+                <!-- Quick Examples -->
+                <h3>Quick Analysis Examples</h3>
+                <div class="example-queries">
+                    <div class="example-btn" onclick="setQuery('explain the functionality of NavigationController')">
+                        <i class="fas fa-code"></i>
+                        <strong>Controller Analysis</strong><br>
+                        <small>Explain controller functionality</small>
+                    </div>
+                    <div class="example-btn" onclick="setQuery('what security vulnerabilities exist in this codebase?')">
+                        <i class="fas fa-shield-alt"></i>
+                        <strong>Security Audit</strong><br>
+                        <small>Find security issues</small>
+                    </div>
+                    <div class="example-btn" onclick="setQuery('analyze the Spring Boot architecture and patterns')">
+                        <i class="fas fa-sitemap"></i>
+                        <strong>Architecture Review</strong><br>
+                        <small>Examine system design</small>
+                    </div>
+                    <div class="example-btn" onclick="setQuery('identify performance bottlenecks and optimization opportunities')">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <strong>Performance Analysis</strong><br>
+                        <small>Find optimization areas</small>
+                    </div>
+                    <div class="example-btn" onclick="setQuery('what design patterns are implemented in this project?')">
+                        <i class="fas fa-puzzle-piece"></i>
+                        <strong>Pattern Detection</strong><br>
+                        <small>Identify design patterns</small>
+                    </div>
+                    <div class="example-btn" onclick="setQuery('how is database access implemented and what are the issues?')">
+                        <i class="fas fa-database"></i>
+                        <strong>Database Analysis</strong><br>
+                        <small>Review data layer</small>
+                    </div>
+                </div>
+
+                <!-- Custom Query -->
+                <div class="form-group">
+                    <label class="form-label">Custom Analysis Query</label>
+                    <textarea id="queryInput" class="form-textarea" 
+                              placeholder="Ask detailed questions about your Java codebase...&#10;&#10;Examples:&#10;- Explain how user authentication works&#10;- What are the main business logic components?&#10;- How is error handling implemented?&#10;- What Spring Boot features are being used?"></textarea>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Analysis Depth</label>
+                        <select id="analysisDepth" class="form-select">
+                            <option value="basic">Basic Overview</option>
+                            <option value="detailed" selected>Detailed Analysis</option>
+                            <option value="comprehensive">Comprehensive Review</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Results Count</label>
+                        <select id="resultsCount" class="form-select">
+                            <option value="3">Top 3 Results</option>
+                            <option value="5" selected>Top 5 Results</option>
+                            <option value="10">Top 10 Results</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="performAnalysis()" id="analyzeBtn">
+                    <i class="fas fa-search"></i>Analyze Code
+                </button>
+            </div>
+
+            <!-- Results Tab -->
+            <div class="tab-content" id="results-tab">
+                <h2><i class="fas fa-poll"></i> Analysis Results</h2>
+                
+                <div id="resultsContainer">
+                    <div style="text-align: center; padding: 60px 20px; color: #6c757d;">
+                        <i class="fas fa-search" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                        <h3>No Analysis Results Yet</h3>
+                        <p>Upload a codebase and run an analysis to see results here.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings-tab">
+                <h2><i class="fas fa-cog"></i> Advanced Settings</h2>
+                
+                <div class="grid-2">
+                    <div class="card">
+                        <h4><i class="fas fa-brain"></i> AI Model Settings</h4>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Temperature (Creativity)</label>
+                            <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.3" class="form-input">
+                            <small>Current: <span id="tempValue">0.3</span></small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Max Tokens</label>
+                            <select id="maxTokens" class="form-select">
+                                <option value="2000">2,000 tokens</option>
+                                <option value="4000" selected>4,000 tokens</option>
+                                <option value="8000">8,000 tokens</option>
+                                <option value="16000">16,000 tokens</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4><i class="fas fa-sliders-h"></i> Analysis Settings</h4>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Code Context Size</label>
+                            <select id="contextSize" class="form-select">
+                                <option value="1000">1,000 characters</option>
+                                <option value="2500" selected>2,500 characters</option>
+                                <option value="5000">5,000 characters</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Processing Options</label>
+                            <label><input type="checkbox" id="enableCache" checked> Enable Response Caching</label><br>
+                            <label><input type="checkbox" id="enableLogging" checked> Enable Debug Logging</label><br>
+                            <label><input type="checkbox" id="enableMetrics"> Collect Performance Metrics</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4><i class="fas fa-download"></i> Export & Import</h4>
+                    <div class="grid-3">
+                        <button class="btn btn-secondary" onclick="exportResults()">
+                            <i class="fas fa-file-export"></i>Export Results
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportConfiguration()">
+                            <i class="fas fa-cog"></i>Export Config
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearAllData()">
+                            <i class="fas fa-trash"></i>Clear All Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
