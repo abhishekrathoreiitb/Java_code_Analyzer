@@ -1,5 +1,5 @@
-# Windows-Compatible Requirements for Java RAG Analyzer
-# This file uses pre-compiled wheels to avoid build issues
+# Enhanced Requirements for Java RAG Analyzer - Legacy Enterprise Edition
+# Optimized for large legacy codebases (10M+ lines)
 
 # Core FastAPI dependencies
 fastapi==0.104.1
@@ -8,26 +8,56 @@ python-multipart==0.0.6
 websockets==12.0
 aiofiles==23.2.1
 
-# Use pre-compiled NumPy wheel (no building required)
-numpy>=1.21.0,<2.0.0
-
-# Data processing with compatible versions
-pandas>=1.5.0,<3.0.0
+# Essential data processing (lightweight)
 pydantic>=2.0.0,<3.0.0
 
-# RAG and AI dependencies (simplified for Windows)
-chromadb>=0.4.0,<0.5.0
+# REQUIRED: AI Provider Libraries (MISSING IN ORIGINAL)
+# OpenAI GPT support
+openai>=1.0.0,<2.0.0
+
+# Anthropic Claude support  
+anthropic>=0.7.0,<1.0.0
+
+# Google Gemini support
 google-generativeai>=0.3.0,<0.4.0
 
-# Sentence transformers with compatible torch
-sentence-transformers>=2.2.0,<3.0.0
-torch>=1.11.0,<3.0.0 --index-url https://download.pytorch.org/whl/cpu
+# Local model API support (Ollama, LM Studio)
+aiohttp>=3.8.0,<4.0.0
 
-# Java parsing
+# Enhanced file processing for large codebases
+pathlib2>=2.3.7  # Better path handling for legacy systems
+chardet>=5.0.0   # Character encoding detection for old files
+
+# Java parsing (enhanced)
 javalang==0.13.0
+
+# Database support (SQLite is built-in, but enhanced drivers)
+# No additional dependency needed - using built-in sqlite3
 
 # Utilities
 python-dotenv==1.0.0
 
-# Optional: For better performance (install separately if needed)
+# Enhanced logging and monitoring for large processing
+psutil>=5.9.0    # System resource monitoring
+tqdm>=4.64.0     # Progress bars for chunked processing
+
+# REMOVED: Heavy dependencies not needed for core functionality
+# chromadb>=0.4.0,<0.5.0                    # REMOVED: Not using vector search
+# sentence-transformers>=2.2.0,<3.0.0       # REMOVED: Not using embeddings  
+# torch>=1.11.0,<3.0.0                      # REMOVED: Not needed without ML
+# numpy>=1.21.0,<2.0.0                      # REMOVED: Not essential for text processing
+# pandas>=1.5.0,<3.0.0                      # REMOVED: Not using dataframes
+
+# Optional: Advanced features (install separately if needed)
+# For vector search (if implementing semantic search later):
+# sentence-transformers>=2.2.0,<3.0.0
+# chromadb>=0.4.0,<0.5.0
+# numpy>=1.21.0,<2.0.0
+
+# For advanced analytics (if adding statistical analysis):
+# pandas>=1.5.0,<3.0.0
 # scikit-learn>=1.3.0,<2.0.0
+
+# For parallel processing (if needed for very large codebases):
+# multiprocessing-logging>=0.3.4
+# concurrent-futures>=3.1.1

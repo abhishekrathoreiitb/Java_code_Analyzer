@@ -1,5 +1,5 @@
-# Final Multi-LLM Java RAG Analyzer Backend
-# Supports OpenAI, Anthropic, Google, and Local models
+# Complete Working Multi-LLM Java RAG Analyzer Backend
+# Fixed version with all required classes
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, WebSocket, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
@@ -18,6 +18,9 @@ from datetime import datetime
 import re
 import aiohttp
 from abc import ABC, abstractmethod
+import sqlite3
+import hashlib
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -46,13 +49,13 @@ try:
 except ImportError:
     logger.warning("⚠️ Google Generative AI library not available")
 
-# Simple in-memory storage
+# Storage
 sessions_store = {}
 processing_status = {}
 
 # Pydantic models
 class MultiLLMRequest(BaseModel):
-    provider: str  # 'openai', 'anthropic', 'google', 'local'
+    provider: str
     model: str
     api_key: Optional[str] = None
     endpoint: Optional[str] = None
@@ -62,7 +65,7 @@ class MultiLLMRequest(BaseModel):
 class QueryRequest(BaseModel):
     query: str
     top_k: int = 5
-    depth: str = "detailed"  # 'basic', 'detailed', 'comprehensive'
+    depth: str = "detailed"
 
 # Create FastAPI app
 app = FastAPI(
@@ -681,9 +684,38 @@ Make your analysis practical and actionable for development teams.
 
     def _rule_based_analysis(self, query: str, documents: List[Dict], depth: str) -> Dict[str, Any]:
         """Enhanced rule-based analysis as fallback"""
-        # Implementation similar to previous version but enhanced
-        # This would be a comprehensive fallback when AI is not available
-        pass
+        analysis_summary = f"Analyzed {len(documents)} relevant files using rule-based analysis."
+        
+        # Simple rule-based responses
+        if 'security' in query.lower():
+            security_issues = []
+            for doc in documents:
+                security_issues.extend(doc.get('analysis', {}).get('security_issues', []))
+            
+            response = f"Security Analysis:\n\nFound the following security issues:\n"
+            for issue in set(security_issues):
+                response += f"- {issue}\n"
+            response += f"\n{analysis_summary}"
+        
+        elif 'pattern' in query.lower():
+            patterns = []
+            for doc in documents:
+                patterns.extend(doc.get('analysis', {}).get('design_patterns', []))
+            
+            response = f"Design Pattern Analysis:\n\nFound the following patterns:\n"
+            for pattern in set(patterns):
+                response += f"- {pattern}\n"
+            response += f"\n{analysis_summary}"
+        
+        else:
+            response = f"Analysis completed for query: '{query}'\n\n{analysis_summary}"
+        
+        return {
+            'answer': response,
+            'sources': [doc.get('analysis', {}) for doc in documents],
+            'provider': 'rule-based',
+            'model': 'internal'
+        }
 
 # Connection Manager for WebSocket
 class ConnectionManager:
@@ -720,7 +752,12 @@ async def get_web_interface():
     except FileNotFoundError:
         return """
         <h1>Java RAG Analyzer - Multi-LLM Professional Edition</h1>
-        <p>Please create the static/index.html file with the enhanced web interface.</p>
+        <p>Web interface files not found. Please ensure the static/ directory contains:</p>
+        <ul>
+            <li>index.html</li>
+            <li>script.js</li>
+            <li>styles.css</li>
+        </ul>
         <p>API docs: <a href="/docs">/docs</a></p>
         """
 
